@@ -2,6 +2,32 @@
 #include "../include/myshell.h"
 
 extern char* prg_name;
+extern list* head; /* listed list start */
+extern list* last;
+
+void init_history() {
+    int i;
+    history_arr = (char**)malloc(CAPACITY* sizeof(char*));
+    for(i = 0; i < CAPACITY; i++)
+        history_arr[i] = (char*)malloc(MAX_COMMAND_LENGTH* sizeof(char));
+}
+
+void free_history() {
+    int i;
+    for(i = 0; i< CAPACITY; i++)
+        free(history_arr[i]);
+    free(history_arr);
+}
+
+void add_to_history(char* cmd, int lastcmd) {
+    if(lastcmd < (CAPACITY - 1)) {
+        strcpy(history_arr[lastcmd], cmd);
+        lastcmd++;
+    }
+    else
+        print_error_msg("history", "out of bounds index!");
+}
+
 
 void print_directory() {
     char pwd[PATH_MAX];
@@ -21,6 +47,8 @@ void print_error_msg(char* commend, char* msg) {
 
 int is_added_commend(char* cmd) {
     if(strncmp(cmd, "cd", 2) == 0)
+        return TRUE;
+    else if(strncmp(cmd, "history", 7) == 0)
         return TRUE;
     return FALSE;
 }
@@ -49,5 +77,25 @@ int change_directory(char* path) {
     }
 
     ret = chdir(path);
+    if(ret == -1) print_error_msg("cd", NULL);
     return ret;
+}
+
+list* make_list(char** cmd_arr, int len) {
+    int i;
+    list* new_link = NULL;
+
+    for(i = 0; i < len; i++) {
+
+        new_link = make_new_link(cmd_arr[i]);
+
+        if (head == NULL) {
+			head = list_append(head, new_link);
+			last = head;
+		}
+	    else
+		    last = list_append(last, new_link);
+    }
+
+    return head;
 }
