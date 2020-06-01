@@ -8,9 +8,24 @@ file: linklist.c
 #include <string.h>
 #include <stdlib.h>
 #include "../include/linklist.h"
+#include "../include/utils.h"
 
 list* head = NULL; /* listed list start */
 list* last = NULL;
+
+void add_to_history(char* command) {
+    list *new_link = NULL;
+    new_link = make_new_link(command);
+
+    if (head == NULL) {
+        head = list_append(head, new_link);
+        last = head;
+    }
+    else {
+        last = list_append(last, new_link);
+        last = last->next;
+    }
+}
 
 list* list_append(list* lst, list* data) {
 
@@ -19,21 +34,20 @@ list* list_append(list* lst, list* data) {
     
     lst->next = data;
 
-    return data;
+    return lst;
 
 }
 
-list* make_new_link(char* name) {
+list* make_new_link(char* command) {
     list* new_link = (list*)malloc(sizeof(list));
-    new_link->name = name;
+    strcpy(new_link->name, command);
     new_link->next = NULL;
 
     return new_link;
-
 }
 
-void list_print(list* lst) {
-    list* current = lst;
+void list_print() {
+    list* current = head;
 
     while(current != NULL) {
         printf(BOLD_GREEN "%s" RESET, current->name);
@@ -41,13 +55,13 @@ void list_print(list* lst) {
     }
 }
 
-void free_list(list* lst) {
+void free_list() {
     list* temp = NULL;
 
-    while(lst->next != NULL) {
-        temp = lst;
-        lst = head->next;
+    while(head->next != NULL) {
+        temp = head;
+        head = head->next;
         free(temp);
     }
-    free(lst);
+    free(head);
 }
