@@ -1,64 +1,16 @@
-
+/*
+*******************
+file: myshell.c
+*******************
+*/
 #include "../include/myshell.h"
 
-extern char* prg_name;
-extern list* head; /* listed list start */
-extern list* last;
-
-void init_history() {
-    int i;
-    history_arr = (char**)malloc(CAPACITY* sizeof(char*));
-    for(i = 0; i < CAPACITY; i++)
-        history_arr[i] = (char*)malloc(MAX_COMMAND_LENGTH* sizeof(char));
-}
-
-void free_history() {
-    int i;
-    for(i = 0; i< CAPACITY; i++)
-        free(history_arr[i]);
-    free(history_arr);
-}
-
-void add_to_history(char* cmd, int lastcmd) {
-    if(lastcmd < (CAPACITY - 1)) {
-        strcpy(history_arr[lastcmd], cmd);
-        lastcmd++;
-    }
-    else
-        print_error_msg("history", "out of bounds index!");
-}
-
-
-void print_directory() {
-    char pwd[PATH_MAX];
-    getcwd(pwd, PATH_MAX);
-
-    printf(BOLD_BLUE "%s" RESET "$ ", pwd + 1);
-}
-
-void print_error_msg(char* commend, char* msg) {
-    if(msg == NULL) {
-        fprintf(stderr, "In " BOLD_GREEN "%s" RESET ": %s:" BOLD_RED " %s... fix it right now!!\n" RESET, prg_name, commend, strerror(errno));
-    }
-    else {
-        fprintf(stderr, "In " BOLD_GREEN "%s" RESET ": %s:" BOLD_RED " %s... fix it right now!!\n" RESET, prg_name, commend, msg);
-    }
-}
-
-int is_added_commend(char* cmd) {
-    if(strncmp(cmd, "cd", 2) == 0)
-        return TRUE;
-    else if(strncmp(cmd, "history", 7) == 0)
-        return TRUE;
-    return FALSE;
-}
-
 int execute(cmdLine *pCmdLine) {
-    int ret; 
-    char* commend = (pCmdLine->arguments)[0];
+    int ret;
+    char *commend = (pCmdLine->arguments)[0];
     ret = execvp(commend, pCmdLine->arguments);
 
-    if(ret == -1) {
+    if (ret == -1){
         perror("Error: ");
         _exit(1);
     }
@@ -66,36 +18,67 @@ int execute(cmdLine *pCmdLine) {
     freeCmdLines(pCmdLine);
 
     return EXIT_SUCCESS;
-
 }
 
-int change_directory(char* path) {
+int change_directory(char *path) {
     int ret; /*for debuging*/
 
-    if(strcmp(path, "~") == 0) {
+    if (strcmp(path, "~") == 0)
         path = getenv("HOME");
-    }
 
     ret = chdir(path);
-    if(ret == -1) print_error_msg("cd", NULL);
+    if (ret == -1)
+        print_error_msg("cd", NULL);
     return ret;
 }
 
-list* make_list(char** cmd_arr, int len) {
-    int i;
-    list* new_link = NULL;
+int main(int argc, char** argv) {
+    cmdLine *parsedLine = NULL;
+    pid_t child_pid;
+    int status = 0;
+    int select_history = FALSE; /*flag for build link list for history*/
+    char input[PATH_MAX] = "";
+    
+    prg_name = argv[0] + 2; /*pass over ./ */
 
-    for(i = 0; i < len; i++) {
+    while(1) {
+        print_directory();
 
-        new_link = make_new_link(cmd_arr[i]);
+        fgets(input, PATH_MAX, stdin); /*get the commend from the user*/
 
-        if (head == NULL) {
-			head = list_append(head, new_link);
-			last = head;
-		}
-	    else
-		    last = list_append(last, new_link);
+        if(strcmp(input, "quit\n") == 0) /*end of the infinite loop of the shell if the command "quit" is enterd */
+            break;
+
+        
+        add_to_history(input);
+        parsedLine = parseCmdLines(input);
+
+        if(is_added_command(input)) {
+            if(strncmp(input, "cd", 2) == 0)
+                change_directory(parsedLine->arguments[1]);
+            else if(strcmp(input, "history\n") == 0) {
+                list_print();
+                select_history = TRUE;
+            }
+            freeCmdLines(parsedLine);
+            continue;
+        }
+
+        child_pid = fork(); /*create a child process*/
+        
+        if(child_pid == 0) { /*the child born successfuly, so start work with him*/
+            execute(parsedLine);
+        }
+        else {
+            waitpid(-1, &status, 0); /*the main process wait's for his child's to end*/
+        }
+
+        freeCmdLines(parsedLine);
     }
+    /*if there no commend so no need to free 
+    list that haven't been allocated*/
+    if(select_history == TRUE) 
+        free_list();
 
-    return head;
+    return EXIT_SUCCESS;
 }
