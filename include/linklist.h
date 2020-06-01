@@ -6,19 +6,19 @@ file: linklist.h
 #ifndef _LINKLIST_H
 #define _LINKLIST_H
 
-#define BOLD_GREEN "\033[1;32m"
-#define RESET "\033[0m"
+#include "../include/utils.h"
 
 typedef struct link list;
 
 struct link {
-    char* name; 
+    char name[MAX_COMMAND_LENGTH]; 
     list* next;
 };
 
+void add_to_history(char* command);
 list* list_append(list* lst, list* data); /*adds the commend to history list*/
-list* make_new_link(char* name);
-void list_print(list* lst);
-void free_list(list* lst); /*free the memory of history list*/
+list* make_new_link(char* command);
+void list_print();
+void free_list(); /*free the memory of history list*/
 
 #endif
