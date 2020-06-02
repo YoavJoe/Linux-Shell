@@ -5,6 +5,8 @@ file: myshell.c
 */
 #include "../include/myshell.h"
 
+int last_command = 0; /*counter the amount of command's in list*/
+
 int execute(cmdLine *pCmdLine) {
     int ret;
     char *commend = (pCmdLine->arguments)[0];
@@ -37,7 +39,8 @@ int main(int argc, char** argv) {
     pid_t child_pid;
     int status = 0;
     int select_history = FALSE; /*flag for build link list for history*/
-    char input[PATH_MAX] = "";
+    char input[PATH_MAX] = "", *selected_command;
+    int location = 0;
     
     prg_name = argv[0] + 2; /*pass over ./ */
 
@@ -49,8 +52,17 @@ int main(int argc, char** argv) {
         if(strcmp(input, "quit\n") == 0) /*end of the infinite loop of the shell if the command "quit" is enterd */
             break;
 
-        
+        if(strncmp(input, "!", 1) == 0) {
+            location = atoi(memset(input, '0', 1));
+            if(location > last_command) {
+                print_error_msg("!", "non-existing log index is invoked");
+                continue;
+            }
+            selected_command = get_command(location);
+            strcpy(input, selected_command);
+        }
         add_to_history(input);
+        last_command++;
         parsedLine = parseCmdLines(input);
 
         if(is_added_command(input)) {
