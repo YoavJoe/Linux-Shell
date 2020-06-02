@@ -27,6 +27,18 @@ void add_to_history(char* command) {
     }
 }
 
+char* get_command(int command_location) {
+    int i = 0;
+    list* temp = head;
+
+    while(i < command_location && temp != NULL) {
+        temp = temp->next;
+        i++;
+    }
+
+    return temp->name;
+}
+
 list* list_append(list* lst, list* data) {
 
     if(lst == NULL)
