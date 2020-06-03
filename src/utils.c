@@ -30,5 +30,9 @@ int is_added_command(char *cmd) {
         return TRUE;
     else if (strncmp(cmd, "history", 7) == 0)
         return TRUE;
+    else if(strncmp(cmd, "set", 3) == 0)
+        return TRUE;
+    else if(strcmp(cmd, "env\n") == 0)
+        return TRUE;
     return FALSE;
 }
