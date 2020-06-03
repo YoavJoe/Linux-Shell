@@ -13,6 +13,8 @@ file: linklist.c
 list* head = NULL; /* listed list start */
 list* last = NULL;
 
+list* environment = NULL;
+
 void add_to_history(char* command) {
     list *new_link = NULL;
     new_link = make_new_link(command);
@@ -25,6 +27,27 @@ void add_to_history(char* command) {
         last = list_append(last, new_link);
         last = last->next;
     }
+}
+
+void add_to_environment(char* name, char* value) {
+    list* to_add = link_to_environment(name, value);
+
+    if(environment == NULL)
+        environment = to_add;
+    else {
+        to_add->next = environment;
+        environment = to_add;
+    }
+}
+
+list* link_to_environment(char* name, char* value) {
+    list* new = (list*)malloc(sizeof(list));
+    new->name = malloc(strlen(name) + 1);
+    new->value = malloc(strlen(value) + 1);
+    strcpy(new->name, name);
+    strcpy(new->value, value);
+    new->next = NULL;
+    return new;
 }
 
 char* get_command(int command_location) {
@@ -40,25 +63,22 @@ char* get_command(int command_location) {
 }
 
 list* list_append(list* lst, list* data) {
-
     if(lst == NULL)
         return data;
-    
     lst->next = data;
-
     return lst;
-
 }
 
 list* make_new_link(char* command) {
     list* new_link = (list*)malloc(sizeof(list));
+    new_link->name =  malloc(strlen(command)+ 1);
     strcpy(new_link->name, command);
     new_link->next = NULL;
 
     return new_link;
 }
 
-void list_print() {
+void print_history() {
     list* current = head;
 
     while(current != NULL) {
@@ -67,13 +87,36 @@ void list_print() {
     }
 }
 
-void free_list() {
+void print_environment() {
+    list* current = environment;
+
+    while(current != NULL) {
+        printf(BOLD_GREEN "name: %s " RESET, current->name);
+        printf(BOLD_GREEN "value: %s" RESET, current->value);
+        printf("\n");
+        current = current->next;
+    }
+}
+
+void free_history() {
     list* temp = NULL;
 
-    while(head->next != NULL) {
+    while(head != NULL) {
         temp = head;
         head = head->next;
+        free(temp->name);
         free(temp);
     }
-    free(head);
+}
+
+void free_environment() {
+    list* temp = NULL;
+
+    while(environment != NULL) {
+        temp = environment;
+        environment = environment->next;
+        free(temp->name);
+        free(temp->value);
+        free(temp);
+    }
 }
