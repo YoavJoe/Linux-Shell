@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     cmdLine *parsedLine = NULL;
     pid_t child_pid;
     int status = 0;
-    int select_history = FALSE; /*flag for build link list for history*/
+    int has_history = FALSE; /*flag for build link list for history*/
     char input[PATH_MAX] = "", *selected_command;
     int location = 0;
     
@@ -61,6 +61,7 @@ int main(int argc, char** argv) {
             selected_command = get_command(location);
             strcpy(input, selected_command);
         }
+        has_history = TRUE;
         add_to_history(input);
         last_command++;
         parsedLine = parseCmdLines(input);
@@ -69,9 +70,14 @@ int main(int argc, char** argv) {
             if(strncmp(input, "cd", 2) == 0)
                 change_directory(parsedLine->arguments[1]);
             else if(strcmp(input, "history\n") == 0) {
-                list_print();
-                select_history = TRUE;
+                print_history();
             }
+            else if(strncmp(input, "set", 3) == 0) 
+                add_to_environment(parsedLine->arguments[1], parsedLine->arguments[2]);
+            else if(strcmp(input, "env\n") == 0) {
+                print_environment();
+            }
+
             freeCmdLines(parsedLine);
             continue;
         }
@@ -87,10 +93,12 @@ int main(int argc, char** argv) {
 
         freeCmdLines(parsedLine);
     }
+
+    free_environment();
+
     /*if there no commend so no need to free 
     list that haven't been allocated*/
-    if(select_history == TRUE) 
-        free_list();
-
+    if(has_history == TRUE) 
+        free_history();
     return EXIT_SUCCESS;
 }
