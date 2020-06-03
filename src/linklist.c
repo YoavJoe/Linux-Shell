@@ -30,8 +30,12 @@ void add_to_history(char* command) {
 }
 
 void add_to_environment(char* name, char* value) {
-    list* to_add = link_to_environment(name, value);
+    list* to_add = NULL;
 
+    if(is_exists(name, value))
+        return;
+
+    to_add = link_to_environment(name, value);
     if(environment == NULL)
         environment = to_add;
     else {
@@ -40,10 +44,25 @@ void add_to_environment(char* name, char* value) {
     }
 }
 
+int is_exists(char* name, char* value) {
+    list* current = environment;
+
+    while(current != NULL) {
+        if(strcmp(name, current->name) == 0) {
+            current->value = (char*)realloc(current->value, strlen(value) + 1);
+            strcpy(current->value, value);
+            return TRUE;
+        }
+        current = current->next;
+    }
+
+   return FALSE;   
+}
+
 list* link_to_environment(char* name, char* value) {
     list* new = (list*)malloc(sizeof(list));
-    new->name = malloc(strlen(name) + 1);
-    new->value = malloc(strlen(value) + 1);
+    new->name = (char*)malloc(strlen(name) + 1);
+    new->value = (char*)malloc(strlen(value) + 1);
     strcpy(new->name, name);
     strcpy(new->value, value);
     new->next = NULL;
