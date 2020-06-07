@@ -34,5 +34,7 @@ int is_added_command(char *cmd) {
         return TRUE;
     else if(strcmp(cmd, "env\n") == 0)
         return TRUE;
+    else if(strncmp(cmd, "delete", 6) == 0)
+        return TRUE;
     return FALSE;
 }
