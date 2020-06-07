@@ -59,6 +59,42 @@ int is_exists(char* name, char* value) {
    return FALSE;   
 }
 
+char* find_value(char* name) {
+    list* curr = environment;
+    
+    while(!is_environment_empty() && strcmp(curr->name, name) != 0)
+        curr = curr->next;
+    if(curr == NULL)
+        return NULL;
+    return curr->value;
+}
+
+void delete_from_environment(char* name) {
+    list* temp = environment, *prev = NULL;
+
+    /*if head itslef holds the key to delete*/
+    if(temp != NULL && strncmp(temp->name, name, 1) == 0) {
+        environment = temp->next; /*change head*/
+        /*free old head*/
+        free(temp->name);
+        free(temp->value);
+        free(temp);
+        return;
+    }
+
+    while(temp != NULL && strncmp(temp->name, name, 1) != 0) {
+        prev = temp;
+        temp = temp->next;
+    }
+    if(temp == NULL) return;
+
+    prev->next = temp->next; /*unlink the node linked list*/
+
+    free(temp->name);
+    free(temp->value);
+    free(temp);
+}
+
 list* link_to_environment(char* name, char* value) {
     list* new = (list*)malloc(sizeof(list));
     new->name = (char*)malloc(strlen(name) + 1);
@@ -79,6 +115,12 @@ char* get_command(int command_location) {
     }
 
     return temp->name;
+}
+
+int is_environment_empty() {
+    if(environment == NULL)
+        return TRUE;
+    return FALSE;
 }
 
 list* list_append(list* lst, list* data) {
