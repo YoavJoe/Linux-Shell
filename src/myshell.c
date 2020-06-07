@@ -34,6 +34,23 @@ int change_directory(char *path) {
     return ret;
 }
 
+void check_environment(cmdLine* parsedLine) {
+    char* arg = NULL, *value = NULL;
+    int i;
+    for(i = 0; i < parsedLine->argCount; i++) {
+        if(is_environment_empty())
+            return;
+        arg = parsedLine->arguments[i];
+        if(arg[0] == '$') {
+            value = find_value(arg + 1);
+        if(value == NULL)
+            print_error_msg("$", "not exist");
+        else
+            replaceCmdArg(parsedLine, i, value);
+        }
+    }
+}
+
 int main(int argc, char** argv) {
     cmdLine *parsedLine = NULL;
     pid_t child_pid;
@@ -48,6 +65,9 @@ int main(int argc, char** argv) {
         print_directory();
 
         fgets(input, PATH_MAX, stdin); /*get the commend from the user*/
+
+        if(strcmp(input, "\n") == 0)
+            continue;
 
         if(strcmp(input, "quit\n") == 0) /*end of the infinite loop of the shell if the command "quit" is enterd */
             break;
@@ -65,6 +85,7 @@ int main(int argc, char** argv) {
         add_to_history(input);
         last_command++;
         parsedLine = parseCmdLines(input);
+        check_environment(parsedLine);
 
         if(is_added_command(input)) {
             if(strncmp(input, "cd", 2) == 0)
@@ -77,7 +98,9 @@ int main(int argc, char** argv) {
             else if(strcmp(input, "env\n") == 0) {
                 print_environment();
             }
-
+            else if(strncmp(input, "delete", 6) == 0)
+                delete_from_environment(input + 7); 
+            
             freeCmdLines(parsedLine);
             continue;
         }
