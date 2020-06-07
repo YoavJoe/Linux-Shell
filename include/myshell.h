@@ -21,6 +21,7 @@ char* prg_name = "";
 /*receives a parsed line and invokes the
  command using the proper system call*/
 int execute(cmdLine *pCmdLine);
+void check_environment(cmdLine* parsedLine);
 int change_directory(char* path);
 int main(int argc, char** argv);
 
