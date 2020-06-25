@@ -38,3 +38,17 @@ int is_added_command(char *cmd) {
         return TRUE;
     return FALSE;
 }
+
+int is_digit(char c) {
+    return ((c >= '0') && (c <= '9')) ? TRUE : FALSE;
+}
+
+int is_number(char* num) {
+    int len = strlen(num) - 1;
+    int i;
+    for(i = 0; i < len; i++) {
+        if(!is_digit(num[i]))
+            return FALSE;
+    }
+    return TRUE;
+}
