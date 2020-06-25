@@ -8,8 +8,8 @@ C=-g -Wall -o
 
 all: myShell
 
-myShell: utils.o linklist.o lineparser.o myshell.o
-	@gcc $(C) myShell $(BIN)utils.o $(BIN)/linklist.o $(BIN)/lineparser.o $(BIN)/myshell.o
+myShell: utils.o pipeline.o linklist.o lineparser.o myshell.o
+	@gcc $(C) myShell $(BIN)utils.o $(BIN)pipeline.o $(BIN)/linklist.o $(BIN)/lineparser.o $(BIN)/myshell.o
 
 myshell.o: $(SOURCE)/myshell.c $(INCLUDE)/myshell.h
 	@gcc $(CFLAGS) $(SOURCE)/myshell.c -o $(BIN)/myshell.o
@@ -19,6 +19,9 @@ lineparser.o: $(SOURCE)/LineParser.c $(INCLUDE)/LineParser.h
 
 linklist.o: $(SOURCE)/linklist.c $(INCLUDE)/linklist.h
 	@gcc $(CFLAGS) $(SOURCE)/linklist.c -o $(BIN)/linklist.o
+
+pipeline.o: $(SOURCE)/pipeline.c $(INCLUDE)/pipeline.h
+	@gcc $(CFLAGS) $(SOURCE)/pipeline.c -o $(BIN)/pipeline.o
 
 utils.o: $(SOURCE)/utils.c $(INCLUDE)/utils.h
 	@mkdir -p bin
