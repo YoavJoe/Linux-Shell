@@ -61,12 +61,13 @@ int is_exists(char* name, char* value) {
 
 char* find_value(char* name) {
     list* curr = environment;
-    
-    while(!is_environment_empty() && strcmp(curr->name, name) != 0)
+
+    while(curr != NULL) {
+        if(strcmp(curr->name, name) == 0)
+            return curr->value;
         curr = curr->next;
-    if(curr == NULL)
-        return NULL;
-    return curr->value;
+    }
+    return NULL;
 }
 
 void delete_from_environment(char* name) {
