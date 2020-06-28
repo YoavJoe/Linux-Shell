@@ -30,6 +30,4 @@ the process associated with the command. That is,
 the pipe that appears to the right of the process name in the command line.*/
 int *right_pipe(int **pipes, cmdLine *pCmdLine);
 
-void handle_pipe();
-
 #endif
