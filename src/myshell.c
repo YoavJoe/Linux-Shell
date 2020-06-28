@@ -10,6 +10,7 @@ file: myshell.c
 #include <sys/types.h> /*for fork*/
 #include <sys/wait.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "../include/myshell.h"
 
 int last_command = 0; /*counter the amount of command's in list*/
@@ -72,16 +73,29 @@ void execute_added_command(cmdLine* cmd) {
         delete_from_environment(cmd->arguments[1]);
 }
 
+int get_size(cmdLine* cmd) {
+    int size = 1;
+    cmdLine* curr = cmd;
+    while(curr->next != NULL) {
+        size++;
+        curr = curr->next;
+    }
+    return size;
+}
+
 int main(int argc, char** argv) {
     cmdLine *parsedLine = NULL;
+    cmdLine* curr = NULL;
     pid_t pid;
     int status = 0;
     int has_history = FALSE; /*flag for build link list for history*/
     char input[PATH_MAX] = "";
     char* selected_command;
     int location = 0;
-    int pip[2];
+    int** pipes = NULL;
+    int* left_p = NULL, *right_p = NULL;
     int reader, writer;
+    int size;
     
     prg_name = argv[0] + 2; /*pass over ./ */
 
@@ -104,6 +118,7 @@ int main(int argc, char** argv) {
                 continue;
             }
             selected_command = get_command(location);
+            input[0] = '\0';
             strcpy(input, selected_command);
         }
         has_history = TRUE;
@@ -117,10 +132,59 @@ int main(int argc, char** argv) {
             freeCmdLines(parsedLine);
             continue;
         }
-        if(pipe(pip) == -1)
-            print_error_msg("pipe", NULL);
-        
-        
+        size = get_size(parsedLine);
+
+        if(size > 1)
+            pipes = create_pipes(size - 1);
+
+        curr = parsedLine;
+
+        while(curr != NULL) {
+            if(pipes != NULL) {
+                left_p = left_pipe(pipes, curr);
+                right_p = right_pipe(pipes, curr);
+            }
+
+            pid = fork();
+            if(pid < 0)
+                print_error_msg("fork", NULL);
+            else if(pid == 0) { /*I'm the child*/
+                const char* input_r = curr->inputRedirect;
+                const char* output_r = curr->outputRedirect;
+                if(input_r != NULL) {
+                    close(STDIN);
+                    open(input_r, O_RDONLY);
+                }
+                if(output_r != NULL) {
+                    close(STDOUT);
+                    open(output_r, O_WRONLY | O_CREAT);
+                }
+                if(left_p != NULL) {
+                    reader = left_p[0];
+                    close(STDIN);
+                    dup(reader);
+                    close(reader);
+                }
+                if(right_p != NULL) {
+                    writer = right_p[1];
+                    close(STDOUT);
+                    dup(writer);
+                    close(writer);
+                }
+                execute(curr);
+            }
+            else { /*I'm the parent*/
+                if(curr->blocking == 1)
+                    waitpid(-1, &status, 0);
+                if(left_p != NULL)
+                    close(left_p[0]);
+                if(right_p != NULL)
+                    close(right_p[1]);
+            }
+            curr = curr->next;
+        }
+        if(pipes != NULL)
+            release_pipes(pipes, size - 1);
         freeCmdLines(parsedLine);
     }
 
