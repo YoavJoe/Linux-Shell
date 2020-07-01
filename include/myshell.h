@@ -13,11 +13,19 @@ file: myshell.h
 
 char* prg_name = "";
 
-/*receives a parsed line and invokes the
+/*This function receives a parsed line and invokes the
  command using the proper system call*/
 int execute(cmdLine *pCmdLine);
+
+/*This function receives a parsed line and check if variable names appear in the 
+command line with a "$" prefix, they are replaced with their associated value.*/
 void check_internal_environment(cmdLine* parsedLine);
+
+/*This function receives path and change
+ the current working directory*/
 int change_directory(char* path);
+
+/*This function receives an added cmd and execute it*/
 void execute_added_command(cmdLine* cmd);
 
 /*This is the main function where the shell is running*/
