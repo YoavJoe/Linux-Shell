@@ -14,9 +14,8 @@ file: linklist.c
 int **create_pipes(int n) {
     int **pipes = (int**)malloc(sizeof(int*) * n);
     int i;
-    int* pipefd;
     for(i = 0; i < n; i++) {
-        pipefd = (int*)malloc(sizeof(int) * 2);
+        int* pipefd = (int*)malloc(sizeof(int) * 2);
         if(pipe(pipefd) == -1) {
             print_error_msg("pipe", NULL);
             exit(EXIT_FAILURE);
