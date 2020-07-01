@@ -182,6 +182,7 @@ int main(int argc, char** argv) {
                     close(right_p[1]);
             }
             curr = curr->next;
+            sleep(1);
         }
         if(pipes != NULL)
             release_pipes(pipes, size - 1);
